@@ -5,6 +5,7 @@ raf = require('raf')
 module.exports = class Playground
   constructor: (name) ->
     wsr = new WebsocketReactor(name)
+    canvasTarget = null
 
     $messageDisplay = $('.chat-container .messages')
     $messageInput   = $('.chat-container input.message')
@@ -14,6 +15,16 @@ module.exports = class Playground
         @value = ''
     )
 
+    $canvas = $('.playground canvas')
+    $canvas.mousemove((e) ->
+      parentOffset = $(this).offset()
+      x = e.pageX - parentOffset.left
+      y = e.pageY - parentOffset.top
+      canvasTarget = [x, y]
+    )
+    $canvas.mouseleave((e) ->
+      canvasTarget = null
+    )
     renderer = new Renderer($('.playground canvas').get(0))
 
     wsr.registerListener('chat', (data) ->
@@ -24,6 +35,6 @@ module.exports = class Playground
       $messageDisplay.append("<p>#{ output }</p>")
     )
     wsr.registerListener('playground', (data) ->
-      raf( -> wsr.send(playground: '!')) # ping back
+      raf( -> wsr.send(playground: target: canvasTarget))
       renderer.draw(data)
     )

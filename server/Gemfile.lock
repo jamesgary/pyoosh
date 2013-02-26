@@ -1,3 +1,9 @@
+GIT
+  remote: git@github.com:jamesgary/percolator.git
+  revision: 5b00d39a3bc4141626215bf3abb84d50591aa1fa
+  specs:
+    percolator (0.0.1.prealpha)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -6,11 +12,10 @@ GEM
       http_parser.rb (~> 0.5.3)
     eventmachine (1.0.0)
     http_parser.rb (0.5.3)
-    percolator (0.0.1.prealpha)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   em-websocket (~> 0.4)
-  percolator (~> 0.0.1.prealpha)
+  percolator!

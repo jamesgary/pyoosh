@@ -35,10 +35,31 @@ class Playground
     end
     @percolator.add_behavior(collision)
     @percolator.add_behavior(edge_bound)
+
+    @attractors = {}
   end
 
   def step
     @percolator.step
+  end
+
+  def player_move(player, target)
+    if attractor = @attractors[player.id]
+      attractor.target.x = target[0]
+      attractor.target.y = target[1]
+    else
+      @percolator.add_behavior(
+        @attractors[player.id] = Percolator::Behaviors::Attraction.new(
+          target: Percolator::Vector.new(target[0], target[1]),
+          radius: 200.0,
+          strength: 2.0,
+        )
+      )
+    end
+  end
+
+  def player_exit(player)
+    @percolator.remove_behavior(@attractors.delete(player.id))
   end
 
   def to_h

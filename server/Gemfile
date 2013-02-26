@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
 gem 'em-websocket', '~> 0.4'
-gem 'percolator', '~> 0.0.1.prealpha'
+gem 'percolator', :git => 'git@github.com:jamesgary/percolator.git'

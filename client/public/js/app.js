@@ -103,8 +103,9 @@ window.require.register("playground/playground", function(exports, require, modu
   module.exports = Playground = (function() {
 
     function Playground(name) {
-      var $messageDisplay, $messageInput, renderer, wsr;
+      var $canvas, $messageDisplay, $messageInput, canvasTarget, renderer, wsr;
       wsr = new WebsocketReactor(name);
+      canvasTarget = null;
       $messageDisplay = $('.chat-container .messages');
       $messageInput = $('.chat-container input.message');
       $messageInput.keypress(function(e) {
@@ -114,6 +115,17 @@ window.require.register("playground/playground", function(exports, require, modu
           });
           return this.value = '';
         }
+      });
+      $canvas = $('.playground canvas');
+      $canvas.mousemove(function(e) {
+        var parentOffset, x, y;
+        parentOffset = $(this).offset();
+        x = e.pageX - parentOffset.left;
+        y = e.pageY - parentOffset.top;
+        return canvasTarget = [x, y];
+      });
+      $canvas.mouseleave(function(e) {
+        return canvasTarget = null;
       });
       renderer = new Renderer($('.playground canvas').get(0));
       wsr.registerListener('chat', function(data) {
@@ -128,7 +140,9 @@ window.require.register("playground/playground", function(exports, require, modu
       wsr.registerListener('playground', function(data) {
         raf(function() {
           return wsr.send({
-            playground: '!'
+            playground: {
+              target: canvasTarget
+            }
           });
         });
         return renderer.draw(data);

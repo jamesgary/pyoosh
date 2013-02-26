@@ -3,7 +3,7 @@ require 'json'
 require_relative 'player'
 require_relative 'playground'
 
-FRAMERATE = (1.0 / 60.0)
+FRAMERATE = 1.0 / 60.0
 
 EM.run do
   @chat_channel = EM::Channel.new # public, everyone's invited
@@ -26,10 +26,15 @@ EM.run do
     listeners << {
       key: 'playground',
       callback: lambda do |data|
-        # assuming data == '!' for ping
+        if target = data['target']
+          @playground.player_move(player, target)
+        else
+          @playground.player_exit(player)
+        end
         player_channel.push({ playground: @playground.to_h }.to_json)
       end
     }
+    attractor = nil
 
     ws.onopen do |handshake|
       player.id   = @chat_channel.subscribe { |msg| ws.send(msg) }
