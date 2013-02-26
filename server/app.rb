@@ -1,32 +1,64 @@
 require 'em-websocket'
 require 'json'
 require_relative 'player'
+require_relative 'playground'
 
-FRAMERATE = 1.0 / 60.0
+FRAMERATE = (1.0 / 60.0)
 
 EM.run do
-  @channel = EM::Channel.new # one channel for now
+  @chat_channel = EM::Channel.new # public, everyone's invited
+  @playground = Playground.new
 
-  EM::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => true) do |ws|
+  EM.add_periodic_timer(FRAMERATE) do
+    @playground.step
+  end
+
+  EM::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false) do |ws|
     player = Player.new # make new player for this scope
+    player_channel = EM::Channel.new # private channel exclusively for player
+    listeners = []
+    listeners << {
+      key: 'chat',
+      callback: lambda do |data|
+        @chat_channel.push({ chat: { msg: data, from: player.name } }.to_json)
+      end
+    }
+    listeners << {
+      key: 'playground',
+      callback: lambda do |data|
+        # assuming data == '!' for ping
+        player_channel.push({ playground: @playground.to_h }.to_json)
+      end
+    }
 
     ws.onopen do |handshake|
-      player.id   = @channel.subscribe { |msg| ws.send(msg) }
+      player.id   = @chat_channel.subscribe { |msg| ws.send(msg) }
       player.name = handshake.query['name'] || "Guest_#{ id }"
-      @channel.push({ chat: {msg: "#{ player.name } has joined" } }.to_json)
+      @chat_channel.push({ chat: {msg: "#{ player.name } has joined" } }.to_json)
+      player_channel.subscribe { |msg| ws.send(msg) }
+
+      # prime the pump
+      player_channel.push({ playground: @playground.to_h }.to_json)
     end
 
-    ws.onmessage do |msg|
-      @channel.push({ chat: { msg: msg, from: player.name } }.to_json)
+    ws.onmessage do |ws_data|
+      ws_data = JSON.parse(ws_data)
+      listeners.each do |listener|
+        if value = ws_data[listener[:key]]
+          listener[:callback].call(value)
+        end
+      end
     end
 
     ws.onclose do
-      @channel.unsubscribe(@sid)
-      @channel.push({ chat: { msg: "#{ player.name } has left" } }.to_json)
+      player_channel.unsubscribe(1) # will always be 1
+      @chat_channel.unsubscribe(@sid)
+      @chat_channel.push({ chat: { msg: "#{ player.name } has left" } }.to_json)
     end
 
     ws.onerror do |e|
       puts "Error: #{ e.message }"
+      puts "Backtrace:\n\t#{e.backtrace.join("\n\t")}"
     end
   end
 
