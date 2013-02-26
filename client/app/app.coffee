@@ -1,21 +1,21 @@
-$( ->
-  ws = new WebSocket("ws://localhost:8080")
-  $messageDisplay = $('.chat-container .messages')
-  $messageInput   = $('.chat-container input.message')
+module.exports = ->
+  StartChat = require('chat/start_chat')
 
-  displayMessage = (from, msg) ->
-    $messageDisplay.append("<p><b>#{ from }</b>: #{ msg }</p>")
+  $welcome_form = $('form.welcome')
+  $name = $welcome_form.find('input.name')
 
-  $messageInput.keypress( (e) ->
-    if e.which == 13 # enter key
-      ws.send(JSON.stringify(from: 'me', msg: @value))
-      @value = ''
+  $welcome_form.modal(
+    backdrop: 'static'
+    keyboard: false
+  )
+  $welcome_form.on('shown', ->
+    $name.focus()
   )
 
-  ws.onopen  = -> console.log("socket connected :D")
-  ws.onclose = -> console.log("socket closed :(")
-  ws.onmessage = (e) ->
-    console.log e
-    data = JSON.parse(e.data)
-    displayMessage(data.from, data.msg)
-)
+  $welcome_form.submit( ->
+    name = $name.val() || 'Nameless'
+    $welcome_form.modal('hide')
+    StartChat(name)
+
+    return false
+  )

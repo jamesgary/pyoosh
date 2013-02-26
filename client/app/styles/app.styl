@@ -1,10 +1,38 @@
-*
-  box-sizing: border-box
+body
+  background-color: #fff
+
+.welcome
+  text-align: center
+  padding: 20px
+  input.name
+    margin: 20px auto
 
 .chat-container
-  display: inline-block;
-  border: 2px solid black
-  .messages
-    background: gray
-    width: 300px
-    height 400px
+  box-sizing: border-box
+  height: 100%
+  margin: 0
+  padding: 20px 0
+  position: absolute
+  top: 0px;
+  width: 300px
+  table
+    background: #f5f5f5
+    box-sizing: border-box
+    border: 2px solid #555
+    height: 100%
+    margin: 0
+    width: 100%
+    td.messages-container
+      padding: 15px
+      .messages
+        height: 100%
+        overflow: scroll
+        vertical-align: top
+    td.input-container
+      height: 30px
+      hr
+        border-top-color: #ccc
+        border-bottom-color: #fff
+        margin: 12px
+      .input-prepend
+        margin-left: 22px

@@ -79,34 +79,61 @@
   globals.require.brunch = true;
 })();
 
+window.require.register("app", function(exports, require, module) {
+  
+  module.exports = function() {
+    var $name, $welcome_form, StartChat;
+    StartChat = require('chat/start_chat');
+    $welcome_form = $('form.welcome');
+    $name = $welcome_form.find('input.name');
+    $welcome_form.modal({
+      backdrop: 'static',
+      keyboard: false
+    });
+    $welcome_form.on('shown', function() {
+      return $name.focus();
+    });
+    return $welcome_form.submit(function() {
+      var name;
+      name = $name.val() || 'Nameless';
+      $welcome_form.modal('hide');
+      StartChat(name);
+      return false;
+    });
+  };
+  
+});
+window.require.register("chat/websocket_connection", function(exports, require, module) {
+  var WebsocketConnection;
 
-$(function() {
-  var $messageDisplay, $messageInput, displayMessage, ws;
-  ws = new WebSocket("ws://localhost:8080");
-  $messageDisplay = $('.chat-container .messages');
-  $messageInput = $('.chat-container input.message');
-  displayMessage = function(from, msg) {
-    return $messageDisplay.append("<p><b>" + from + "</b>: " + msg + "</p>");
-  };
-  $messageInput.keypress(function(e) {
-    if (e.which === 13) {
-      ws.send(JSON.stringify({
-        from: 'me',
-        msg: this.value
-      }));
-      return this.value = '';
+  module.exports = WebsocketConnection = (function() {
+    var HOST, NOISY;
+
+    HOST = 'localhost:8080';
+
+    NOISY = true;
+
+    function WebsocketConnection(name, onReceive) {
+      this.ws = new WebSocket("ws://" + HOST + "?name=" + (escape(name)));
+      this.ws.onmessage = function(e) {
+        return onReceive(JSON.parse(e.data).chat);
+      };
+      if (NOISY) {
+        this.ws.onopen = function() {
+          return console.log("socket connected :D");
+        };
+        this.ws.onclose = function() {
+          return console.log("socket closed :(");
+        };
+      }
     }
-  });
-  ws.onopen = function() {
-    return console.log("socket connected :D");
-  };
-  ws.onclose = function() {
-    return console.log("socket closed :(");
-  };
-  return ws.onmessage = function(e) {
-    var data;
-    console.log(e);
-    data = JSON.parse(e.data);
-    return displayMessage(data.from, data.msg);
-  };
+
+    WebsocketConnection.prototype.send = function(msg) {
+      return this.ws.send(msg);
+    };
+
+    return WebsocketConnection;
+
+  })();
+  
 });
