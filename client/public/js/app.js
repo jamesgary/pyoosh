@@ -103,51 +103,65 @@ window.require.register("playground/playground", function(exports, require, modu
   module.exports = Playground = (function() {
 
     function Playground(name) {
-      var $canvas, $messageDisplay, $messageInput, canvasTarget, renderer, wsr;
-      wsr = new WebsocketReactor(name);
-      canvasTarget = null;
-      $messageDisplay = $('.chat-container .messages');
-      $messageInput = $('.chat-container input.message');
-      $messageInput.keypress(function(e) {
+      this.wsr = new WebsocketReactor(name);
+      this.canvasTarget = null;
+      this.$messageDisplay = $('.chat-container .messages');
+      this.$messageInput = $('.chat-container input.message');
+      this.$canvas = $('.playground canvas');
+      this.renderer = new Renderer(this.$canvas.get(0));
+      this.attachMessageListener();
+      this.attachCanvasListener();
+      this.attachWsrListener();
+    }
+
+    Playground.prototype.attachMessageListener = function() {
+      var _this = this;
+      return this.$messageInput.keypress(function(e) {
         if (e.which === 13) {
-          wsr.send({
-            chat: this.value
+          _this.wsr.send({
+            chat: e.target.value
           });
-          return this.value = '';
+          return e.target.value = '';
         }
       });
-      $canvas = $('.playground canvas');
-      $canvas.mousemove(function(e) {
+    };
+
+    Playground.prototype.attachCanvasListener = function() {
+      var _this = this;
+      this.$canvas.mousemove(function(e) {
         var parentOffset, x, y;
-        parentOffset = $(this).offset();
+        parentOffset = $(e.target).offset();
         x = e.pageX - parentOffset.left;
         y = e.pageY - parentOffset.top;
-        return canvasTarget = [x, y];
+        return _this.canvasTarget = [x, y];
       });
-      $canvas.mouseleave(function(e) {
-        return canvasTarget = null;
+      return this.$canvas.mouseleave(function(e) {
+        return _this.canvasTarget = null;
       });
-      renderer = new Renderer($('.playground canvas').get(0));
-      wsr.registerListener('chat', function(data) {
+    };
+
+    Playground.prototype.attachWsrListener = function() {
+      var _this = this;
+      this.wsr.registerListener('chat', function(data) {
         var output;
         if (data.from) {
           output = "<b>" + data.from + "</b>: " + data.msg;
         } else {
           output = "<i>" + data.msg + "</i>";
         }
-        return $messageDisplay.append("<p>" + output + "</p>");
+        return _this.$messageDisplay.append("<p>" + output + "</p>");
       });
-      wsr.registerListener('playground', function(data) {
+      return this.wsr.registerListener('playground', function(data) {
         raf(function() {
-          return wsr.send({
+          return _this.wsr.send({
             playground: {
-              target: canvasTarget
+              target: _this.canvasTarget
             }
           });
         });
-        return renderer.draw(data);
+        return _this.renderer.draw(data);
       });
-    }
+    };
 
     return Playground;
 

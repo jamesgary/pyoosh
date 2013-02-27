@@ -2,9 +2,6 @@ HOST = 'localhost:8080'
 NOISY = true
 
 module.exports = class WebsocketReactor
-  # callback will take one argument in the form of
-  # { msg: String, from: String|null }
-  # assume a null `from` is a system notification
   constructor: (name) ->
     @listeners = []
     @ws = new WebSocket("ws://#{ HOST }?name=#{ escape(name) }")
