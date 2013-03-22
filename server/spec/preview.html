@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <style>
+      html, body { background: #eee; }
+      canvas { background: #fff; }
+    </style>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script>
+      (function(){
+        var HEIGHT, WIDTH, requestAnimationFrame;
+        WIDTH = 400;
+        HEIGHT = 300;
+
+        requestAnimationFrame =
+          window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function(callback) { window.setTimeout(callback, 1000 / 60); };
+
+        var setupCanvas = function(canvas) {
+          canvas.width = WIDTH;
+          canvas.height = HEIGHT;
+          var ctx = canvas.getContext('2d');
+          ctx.strokeStyle = '#222';
+          ctx.lineWidth = 1;
+          return ctx;
+        };
+
+        var draw = function(ctx, frame) {
+          // frame is {x, y, rad, a}
+          ctx.clearRect(0, 0, WIDTH, HEIGHT);
+          $.each(frame.bodies, function(key, b) {
+            if (b.mass > 1.5) {
+              ctx.fillStyle = '#00bb00';
+            } else {
+              ctx.fillStyle = '#22ff22';
+            }
+            // draw circle
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.rad, 0, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.stroke();
+            // draw angle
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y);
+            var scaledRad = 0.8 * b.rad;
+            ctx.lineTo(b.x + (scaledRad * Math.cos(b.a)), b.y + (scaledRad * Math.sin(b.a)));
+            ctx.stroke();
+          });
+        };
+
+        $(function() {
+          $.each($('canvas'), function(key, canvas) {
+            var name = canvas.dataset.source;
+
+            $.getJSON('/tmp/spec_data/' + name + '.json', function(frames) {
+              var ctx = setupCanvas(canvas);
+              var currentFrame = 0;
+              var animate = function() {
+                requestAnimationFrame(animate);
+                currentFrame++;
+                if (currentFrame >= frames.length) currentFrame = 0;
+                draw(ctx, frames[currentFrame]);
+              };
+              animate();
+            });
+          });
+        });
+      }());
+    </script>
+  </head>
+  <body>
+    <canvas data-source='bounded'></canvas>
+  </body>
+</html>

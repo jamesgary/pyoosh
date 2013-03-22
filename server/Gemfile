@@ -1,4 +1,11 @@
 source 'https://rubygems.org'
+ruby '2.0.0'
 
 gem 'em-websocket', '~> 0.4'
-gem 'percolator', :git => 'git@github.com:jamesgary/percolator.git'
+gem 'chipmunk', '~> 5.3'
+# gem 'percolator', :git => 'git@github.com:jamesgary/percolator.git'
+
+group :development, :test do
+  gem 'guard-rspec'
+  gem 'rb-fsevent', '~> 0.9' # guard dependency
+end

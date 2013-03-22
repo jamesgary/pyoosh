@@ -1,0 +1,22 @@
+shorten fieldnames to 3 or 4 chars if:
+  - it sounds okay
+  - sames you at least 50% letters
+  - examples:
+    - rad: radius
+    - pos: postion
+    - rect: rectangle
+  - nonexamples:
+    - circ: circle # doesn't save you 50%
+
+game:
+  start           # => starts iterating 60 fps
+  get_game_state  # => current json data
+  player_input(_) # => player does something (clicks something, etc)
+  pause           #
+  is_paused?      #
+
+playing_field:
+  step(t = 1.0/60)          # simulate physics for `t` seconds, returns nil
+  game_state                # returns a hash of game_state
+  add_shape(pos, vel, type) # pos & vel are vectors, type is something like circle, star, square
+                            # more params could be weight, friction, etc
